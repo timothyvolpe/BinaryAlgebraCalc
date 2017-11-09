@@ -387,15 +387,15 @@ int main( int argc, char *argv[] )
 		}
 		kmap.setRowVars( rowVars );
 
-		printf( "Use Gray code? Y/N:" );
+		printf( "Row (r) or column (c) is control signals? (Press enter for neither):" );
 		std::getline( std::cin, grayCodePrompt );
-		if( grayCodePrompt == "N" || grayCodePrompt == "n" ) {
-			printf( "NOT using Gray code!\n" );
-			kmap.useGrayCode = false;
+		if( grayCodePrompt == "r" ) {
+			printf( "ROW is control signals!\n" );
+			kmap.m_controlSignals = CONTROL_SIGNALS_ROW;
 		}
-		else {
-			printf( "Using Gray code!\n" );
-			kmap.useGrayCode = true;
+		else if( grayCodePrompt == "c" ) {
+			printf( "COLUMN is control signals!\n" );
+			kmap.m_controlSignals = CONTROL_SIGNALS_COLUMN;
 		}
 
 

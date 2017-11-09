@@ -5,7 +5,7 @@
 #include "util.h"
 
 CKarnaughMap::CKarnaughMap() {
-	useGrayCode = true;
+	m_controlSignals = CONTROL_SIGNALS_NONE;
 }
 CKarnaughMap::~CKarnaughMap() {
 }
@@ -127,23 +127,25 @@ void CKarnaughMap::print()
 	boxPadLeft.assign( ((m_columnVars.size() + 2) / 2)-1, ' ' );
 	boxPadRight.assign( (int)ceil((m_columnVars.size() + 2) / 2), ' ' );
 
-	// Use Gray code?
-	if( this->useGrayCode ) {
-		columnVals = GenerateGrayCode( m_columnVars.size() );
-		rowVals = GenerateGrayCode( m_rowVars.size() );
+	// Control signals
+	if( this->m_controlSignals == CONTROL_SIGNALS_ROW ) {
+		rowVals.reserve( (int)pow( 2, m_rowVars.size() ) );
+		for( int i = 0; i < (int)pow( 2, m_rowVars.size() ); i++ )
+			rowVals.push_back( ConvertIntToBinary( i, m_rowVars.size() ) );
+		
 	}
 	else
-	{
+		rowVals = GenerateGrayCode( m_rowVars.size() );
+
+	if( this->m_controlSignals == CONTROL_SIGNALS_COLUMN ) {
 		// Generate the column and row values
 		columnVals.reserve( (int)pow( 2, m_columnVars.size() ) );
 		for( int i = 0; i < (int)pow( 2, m_columnVars.size() ); i++ )
-		columnVals.push_back( ConvertIntToBinary( i, m_columnVars.size() ) );
-		rowVals.reserve( (int)pow( 2, m_rowVars.size() ) );
-		for( int i = 0; i < (int)pow( 2, m_rowVars.size() ); i++ )
-		rowVals.push_back( ConvertIntToBinary( i, m_rowVars.size() ) );
-	}
+			columnVals.push_back( ConvertIntToBinary( i, m_columnVars.size() ) );
 
-	
+	}
+	else
+		columnVals = GenerateGrayCode( m_columnVars.size() );
 
 	// Print column header
 	printf( "\t%s", offset.c_str() );

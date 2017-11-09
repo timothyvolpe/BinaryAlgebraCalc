@@ -10,6 +10,13 @@ enum
 	HEADER_ERROR_DIMMISMATCH
 };
 
+enum
+{
+	CONTROL_SIGNALS_NONE,
+	CONTROL_SIGNALS_COLUMN,
+	CONTROL_SIGNALS_ROW
+};
+
 class CKarnaughMap
 {
 private:
@@ -22,7 +29,7 @@ public:
 	std::vector<int> m_minTerms;
 	std::vector<int> m_maxTerms;
 	std::vector<int> m_donkeyTerms;
-	bool useGrayCode;
+	int m_controlSignals;
 
 	CKarnaughMap();
 	~CKarnaughMap();
