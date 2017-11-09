@@ -21,9 +21,15 @@
     <ClCompile Include="equationparser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="karnaughmap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="equationparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="karnaughmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,6 +2,7 @@
 #include <string>
 #include <bitset>
 #include "equationparser.h"
+#include "karnaughmap.h"
 
 std::string ConvertIntToBinary( int val, unsigned int digits )
 {
@@ -23,7 +24,7 @@ int main( int argc, char *argv[] )
 
 	printf( "\n  Binary Algebra Solver\n" );
 	printf( "  by Timothy Volpe (c) 2017\n" );
-	printf( "  v0.3\n\n" );
+	printf( "  v0.4\n\n" );
 
 	comparisonEq = "";
 
@@ -273,8 +274,34 @@ int main( int argc, char *argv[] )
 		printf( ")\n" );
 	}
 
-	printf( "\nPress any key to exit..." );
-	std::cin.get();
+	// K-Maps
+	CKarnaughMap kmap;
+	std::string exitString, columnVars, rowVars;
+
+	printf( "\nEnter \'k' to generate a K-Map, or press enter to exit... " );
+	std::getline( std::cin, exitString );
+
+	if( exitString != "" )
+	{
+		kmap.m_uniqueVariables = parser.getUniqueVariables();
+		kmap.m_minTerms = minterm;
+		kmap.m_maxTerms = maxterm;
+
+		printf( "\nEnter variables for the columns: " );
+		std::getline( std::cin, columnVars );
+		if( columnVars == "" ) {
+			printf( "Invalid variables for column header\n" );
+			return 0;
+		}
+		printf( "Enter variables for the rows: " );
+		std::getline( std::cin, rowVars );
+		if( rowVars == "" ) {
+			printf( "Invalid variables for column header\n" );
+			return 0;
+		}
+
+		printf( "Generating K-Map (%s, %s)...\n", columnVars.c_str(), rowVars.c_str() );
+	}
 
 	return 0;
 }

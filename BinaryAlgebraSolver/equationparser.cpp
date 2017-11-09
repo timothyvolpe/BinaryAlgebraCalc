@@ -19,6 +19,7 @@ unsigned char CEquationParser::getLiteralType( char ch )
 		switch( ch ) {
 		case '+':
 		case '*':
+		case '^':
 			return LITERAL_TYPE_OPERATOR;
 		case '(':
 		case ')':
@@ -117,7 +118,7 @@ bool CEquationParser::parse( std::string eq, int *pError )
 	{
 		// Check if its a literal or an operator
 		literalType = CEquationParser::getLiteralType( eq[i] );
-		if( literalType == LITERAL_TYPE_ALPHA || literalType == LITERAL_TYPE_NUMERIC )
+		if( literalType == LITERAL_TYPE_ALPHA )
 		{
 			EquationToken token;
 			token.token = eq[i];
@@ -137,6 +138,21 @@ bool CEquationParser::parse( std::string eq, int *pError )
 				} ) == m_uniqueVariables.end() ) {
 				m_uniqueVariables.push_back( token.token );
 			}
+		}
+		if( literalType == LITERAL_TYPE_NUMERIC )
+		{
+			EquationToken token;
+			token.token = eq[i];
+			token.tokenType = TOKEN_TYPE_LITERAL;
+			// Check if its negated
+			token.negated = false;
+			if( i != eq.length() - 1 ) {
+				if( CEquationParser::getLiteralType( eq[i + 1] ) == LITERAL_TYPE_NOT ) {
+					token.negated = true;
+					i++;
+				}
+			}
+			m_tokens.push_back( token );
 		}
 		if( literalType == LITERAL_TYPE_OPERATOR || literalType == LITERAL_TYPE_PAREN || literalType == LITERAL_TYPE_NOT )
 		{
@@ -172,6 +188,9 @@ bool CEquationParser::parse( std::string eq, int *pError )
 			case '*':
 				token.tokenType = TOKEN_TYPE_AND;
 				break;
+			case '^':
+				token.tokenType = TOKEN_TYPE_XOR;
+				break;
 			case '\'':
 				token.tokenType = TOKEN_TYPE_TERMNOT;
 				break;
@@ -205,7 +224,8 @@ EquationToken CEquationParser::evalGet() {
 	return (*m_evaluationIterator++);
 }
 
-bool CEquationParser::evalLiteral() {
+bool CEquationParser::evalLiteral()
+{
 	if( this->evalPeek().negated )
 		return !(m_variables[this->evalGet().token]);
 	return (m_variables[this->evalGet().token]);
@@ -244,10 +264,17 @@ bool CEquationParser::evalExpression()
 	bool result = this->evalTerm();
 	if( this->evalPeek().tokenType == TOKEN_TYPE_END )
 		return result;
-	while( this->evalPeek().tokenType == TOKEN_TYPE_OR ) {
-		if( this->evalGet().tokenType == TOKEN_TYPE_OR ) {
+	while( this->evalPeek().tokenType == TOKEN_TYPE_OR || this->evalPeek().tokenType == TOKEN_TYPE_XOR )
+	{
+		if( this->evalPeek().tokenType == TOKEN_TYPE_OR ) {
+			this->evalGet();
 			bool partOfBool = this->evalTerm();
 			result = (result || partOfBool);
+		}
+		else if( this->evalPeek().tokenType == TOKEN_TYPE_XOR ) {
+			this->evalGet();
+			bool partOfBool = this->evalTerm();
+			result = result ^ partOfBool;
 		}
 	}
 	return result;
