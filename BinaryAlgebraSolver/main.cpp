@@ -1,26 +1,17 @@
 #include <iostream>
 #include <string>
-#include <bitset>
+#include "util.h"
 #include "equationparser.h"
 #include "karnaughmap.h"
 
-std::string ConvertIntToBinary( int val, unsigned int digits )
-{
-	if( digits <= 0 )
-		return "";
-
-	std::string fullOutput = std::bitset<32>( val ).to_string();
-
-	return fullOutput.substr( 32-digits, digits );
-}
-
 int main( int argc, char *argv[] )
 {
-	std::string userEq, inputStr, comparisonEq;
+	std::string userEq, inputStr, comparisonEq, donkeys;
 	std::vector<std::string> userInputs;
 	bool evalResult, comparisonResult;
 	std::vector<int> minterm, mintermComparison;
 	std::vector<int> maxterm, maxtermComparison;
+	std::vector<int> donkeyTerms, donkeyTermsComparison;
 
 	printf( "\n  Binary Algebra Solver\n" );
 	printf( "  by Timothy Volpe (c) 2017\n" );
@@ -42,7 +33,7 @@ int main( int argc, char *argv[] )
 	{
 		// Load the equation from file
 		FILE *file;
-		file = fopen( "equation.txt", "r" );
+		fopen_s( &file, "equation.txt", "r" );
 		if( file ) {
 			char buff[512];
 			fgets( buff, 512, file );
@@ -160,7 +151,7 @@ int main( int argc, char *argv[] )
 			break;
 		else if( inputStr[0] == 'i' ) {
 			// Fill in the rest with the remaining inputs incrementing
-			for( unsigned int j = userInputs.size(); j < parser.getMaxInputs(); j++ ) {
+			for( int j = userInputs.size(); j < parser.getMaxInputs(); j++ ) {
 				std::string input = ConvertIntToBinary( j, parser.getUniqueVariableCount() );
 				printf( " %d\t| %s\n", j, input.c_str() );
 				userInputs.push_back( input );
@@ -187,6 +178,11 @@ int main( int argc, char *argv[] )
 		std::cin.get();
 		return 5;
 	}
+
+	printf( "Donkeys? (Separate by commas, press enter for none): " );
+	std::getline( std::cin, donkeys );
+	if( donkeys != "" )
+		donkeyTerms = ParseDonkeys( donkeys );
 
 	printf( "Evaluating equation...\n" );
 	for( unsigned int i = 0; i < userInputs.size(); i++ )
@@ -226,57 +222,111 @@ int main( int argc, char *argv[] )
 		}
 		if( comparisonEq != "" ) {
 			printf( "Result %d:\t %s (C: %s\tE: %s)\n", i, ((evalResult == comparisonResult) ? "EQUAL " : "NEQUAL"), (comparisonResult ? "TRUE" : "FALSE"), (evalResult ? "TRUE" : "FALSE") );
-			if( comparisonResult )
-				mintermComparison.push_back( i );
-			else
-				maxtermComparison.push_back( i );
+			// Make sure it isn't a donkey
+			if( std::find( donkeyTerms.begin(), donkeyTerms.end(), i ) == donkeyTerms.end() )
+			{
+				if( comparisonResult )
+					mintermComparison.push_back( i );
+				else
+					maxtermComparison.push_back( i );
+			}
 		}
 		else
 			printf( "Result %d:\t %s\n", i, (evalResult ? "TRUE" : "FALSE") );
 
-		if( evalResult )
-			minterm.push_back( i );
-		else
-			maxterm.push_back( i );
+		// Make sure it isn't a donkey
+		if( std::find( donkeyTerms.begin(), donkeyTerms.end(), i ) == donkeyTerms.end() )
+		{
+			if( evalResult )
+				minterm.push_back( i );
+			else
+				maxterm.push_back( i );
+		}
 	}
 	// Minterms
-	wprintf( L"Minterms (E): m(" );
+	printf( "Minterms (E): m(" );
 	for( auto it = minterm.begin(); it != minterm.end(); it++ ) {
 		printf( "%d", (*it) );
 		if( it + 1 != minterm.end() )
 			printf( ", " );
 	}
-	printf( ")\n" );
+	if( donkeyTerms.size() > 0 )
+	{
+		printf( ") + d(" );
+		for( auto it = donkeyTerms.begin(); it != donkeyTerms.end(); it++ ) {
+			printf( "%d", (*it) );
+			if( it + 1 != donkeyTerms.end() )
+				printf( ", " );
+		}
+		printf( ")\n" );
+	}
+	else
+		printf( ")\n" );
+
 	if( comparisonEq != "" ) {
-		wprintf( L"Minterms (C): m(" );
+		printf( "Minterms (C): m(" );
 		for( auto it = mintermComparison.begin(); it != mintermComparison.end(); it++ ) {
 			printf( "%d", (*it) );
 			if( it + 1 != mintermComparison.end() )
 				printf( ", " );
 		}
-		printf( ")\n" );
+		if( donkeyTerms.size() > 0 )
+		{
+			printf( ") + d(" );
+			for( auto it = donkeyTerms.begin(); it != donkeyTerms.end(); it++ ) {
+				printf( "%d", (*it) );
+				if( it + 1 != donkeyTerms.end() )
+					printf( ", " );
+			}
+			printf( ")\n" );
+		}
+		else
+			printf( ")\n" );
 	}
 	// Maxterms
-	wprintf( L"Maxterms (E): M(" );
+	printf( "Maxterms (E): M(" );
 	for( auto it = maxterm.begin(); it != maxterm.end(); it++ ) {
 		printf( "%d", (*it) );
 		if( it + 1 != maxterm.end() )
 			printf( ", " );
 	}
-	printf( ")\n" );
+	if( donkeyTerms.size() > 0 )
+	{
+		printf( ") + d(" );
+		for( auto it = donkeyTerms.begin(); it != donkeyTerms.end(); it++ ) {
+			printf( "%d", (*it) );
+			if( it + 1 != donkeyTerms.end() )
+				printf( ", " );
+		}
+		printf( ")\n" );
+	}
+	else
+		printf( ")\n" );
 	if( comparisonEq != "" ) {
-		wprintf( L"Minterms (C): M(" );
+		printf( "Minterms (C): M(" );
 		for( auto it = maxtermComparison.begin(); it != maxtermComparison.end(); it++ ) {
 			printf( "%d", (*it) );
 			if( it + 1 != maxtermComparison.end() )
 				printf( ", " );
 		}
-		printf( ")\n" );
+		if( donkeyTerms.size() > 0 )
+		{
+			printf( ") + d(" );
+			for( auto it = donkeyTerms.begin(); it != donkeyTerms.end(); it++ ) {
+				printf( "%d", (*it) );
+				if( it + 1 != donkeyTerms.end() )
+					printf( ", " );
+			}
+			printf( ")\n" );
+		}
+		else
+			printf( ")\n" );
 	}
 
 	// K-Maps
 	CKarnaughMap kmap;
-	std::string exitString, columnVars, rowVars;
+	std::string exitString, columnVars, rowVars, grayCodePrompt;
+	int varError;
 
 	printf( "\nEnter \'k' to generate a K-Map, or press enter to exit... " );
 	std::getline( std::cin, exitString );
@@ -286,21 +336,75 @@ int main( int argc, char *argv[] )
 		kmap.m_uniqueVariables = parser.getUniqueVariables();
 		kmap.m_minTerms = minterm;
 		kmap.m_maxTerms = maxterm;
+		kmap.m_donkeyTerms = donkeyTerms;
 
-		printf( "\nEnter variables for the columns: " );
-		std::getline( std::cin, columnVars );
-		if( columnVars == "" ) {
-			printf( "Invalid variables for column header\n" );
-			return 0;
+		while( kmap.isValidHeader( columnVars ) != HEADER_OK )
+		{
+			printf( "\nEnter variables for the columns: " );
+			std::getline( std::cin, columnVars );
+			if( (varError = kmap.isValidHeader( columnVars )) != HEADER_OK )
+			{
+				switch( varError )
+				{
+				case HEADER_ERROR_EMPTY:
+					printf( "No variables given!\n" );
+					return 0;
+				case HEADER_ERROR_INVALID:
+					printf( "Invalid variables given!\n" );
+					break;
+				case HEADER_ERROR_DIMMISMATCH:
+					printf( "Does not match the dimension specifications (Rows and columns must have equal or off-by-one number of variables)\n" );
+					break;
+				case HEADER_ERROR_REPEAT:
+					printf( "Cannot repeat variables!" );
+					break;
+				}
+			}
 		}
-		printf( "Enter variables for the rows: " );
-		std::getline( std::cin, rowVars );
-		if( rowVars == "" ) {
-			printf( "Invalid variables for column header\n" );
-			return 0;
+		kmap.setColumnVars( columnVars );
+		while( kmap.isValidHeader( rowVars ) != HEADER_OK )
+		{
+			printf( "\nEnter variables for the rows: " );
+			std::getline( std::cin, rowVars );
+			if( (varError = kmap.isValidHeader( rowVars )) != HEADER_OK )
+			{
+				switch( varError )
+				{
+				case HEADER_ERROR_EMPTY:
+					printf( "No variables given!\n" );
+					return 0;
+				case HEADER_ERROR_INVALID:
+					printf( "Invalid variables given!\n" );
+					break;
+				case HEADER_ERROR_DIMMISMATCH:
+					printf( "Does not match the dimension specifications (Rows and columns must have equal or off-by-one number of variables)\n" );
+					break;
+				case HEADER_ERROR_REPEAT:
+					printf( "Cannot repeat variables!" );
+					break;
+				}
+			}
 		}
+		kmap.setRowVars( rowVars );
+
+		printf( "Use Gray code? Y/N:" );
+		std::getline( std::cin, grayCodePrompt );
+		if( grayCodePrompt == "n" || grayCodePrompt == "n" ) {
+			printf( "NOT using Gray code!\n" );
+			kmap.useGrayCode = false;
+		}
+		else {
+			printf( "Using Gray code!\n" );
+			kmap.useGrayCode = true;
+		}
+
 
 		printf( "Generating K-Map (%s, %s)...\n", columnVars.c_str(), rowVars.c_str() );
+
+		kmap.print();
+
+		printf( "\nPress any key to exit..." );
+		std::cin.get();
 	}
 
 	return 0;
