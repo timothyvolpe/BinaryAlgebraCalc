@@ -389,7 +389,7 @@ int main( int argc, char *argv[] )
 
 		printf( "Use Gray code? Y/N:" );
 		std::getline( std::cin, grayCodePrompt );
-		if( grayCodePrompt == "n" || grayCodePrompt == "n" ) {
+		if( grayCodePrompt == "N" || grayCodePrompt == "n" ) {
 			printf( "NOT using Gray code!\n" );
 			kmap.useGrayCode = false;
 		}
